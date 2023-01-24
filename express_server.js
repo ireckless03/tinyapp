@@ -4,6 +4,7 @@ const PORT = 8080;
 
 app.set("view engine", "ejs");
 
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -62,8 +63,23 @@ app.get(`/u/:id`, (req, res) => {
   res.redirect(longURL);
 });
 
+app.post('/urls/:id/delete', (req, res) => {
+  const shortID = req.params.id;
+  delete urlDatabase[shortID];
+  res.redirect('/urls');
+})
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
 // postman and rested curl
+// form tag or anchor to link to another page
+
+// why is delete route a post request? - trying to change data in backend 
+// 
+// Get - request doesnt alter anything
+
+// C
+// R
+// D - app.delete 
