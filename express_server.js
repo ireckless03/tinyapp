@@ -6,15 +6,30 @@ app.set("view engine", "ejs");
 
 var cookies = require("cookie-parser"); 
 
-let users = {
-}
+app.use(express.urlencoded({ extended: true }));
+
+app.use(cookies());
+
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-const usernames = {}
+
 const generateRandomString = () => {
   var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
   var string_length = 6;
@@ -26,17 +41,18 @@ const generateRandomString = () => {
   return string;
 }
 
-app.use(express.urlencoded({ extended: true }));
-
-app.use(cookies());
-
 app.get("/", (req, res) => {
-  res.redirect('/urls');
+  return res.redirect('/urls');
 });
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, userName: req.cookies.userName };
-  res.render("urls_index", templateVars);
+  return res.render("urls_index", templateVars);
+});
+
+app.get("/register", (req, res) => {
+  const templateVars = { urls: urlDatabase, userName: req.cookies.userName };
+  return res.render("url_register", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
@@ -45,7 +61,7 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { urls: urlDatabase, userName: req.cookies.userName };
-  res.render("urls_new", templateVars)
+  return res.render("urls_new", templateVars)
 });
 
 
@@ -55,14 +71,14 @@ app.get("/urls/:id", (req, res) => {
     longURL: urlDatabase[req.params.id],
     userName: req.cookies.userName 
   };
-  res.render('urls_show',templateVars);
+  return res.render('urls_show',templateVars);
 });
 
 // if short url entered in path, redirect to long url
 app.get(`/u/:id`, (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id];
-  res.redirect(longURL);
+  return res.redirect(longURL);
 });
 
 // generate short url and save short & long to database
@@ -70,7 +86,7 @@ app.post("/urls", (req, res) => {
   console.log(req.body); 
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
-  res.redirect(`/urls/${id}`);
+  return res.redirect(`/urls/${id}`);
 });
 
 // gets user id and creates a cookie, redirect to main url page
@@ -88,14 +104,14 @@ app.post('/logout', (req, res) => {
 app.post('/urls/:id/delete', (req, res) => {
   const shortID = req.params.id;
   delete urlDatabase[shortID];
-  res.redirect('/urls');
+  return res.redirect('/urls');
 })
 
 // to eddit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
   const shortID = req.params.id;
  // urlDatabase[shortID] = 
-  res.redirect(`/urls/${shortID}/`);
+  return res.redirect(`/urls/${shortID}/`);
 })
 
 // after clicking submit to update url, redirect to main url page
@@ -103,7 +119,30 @@ app.post('/urls/:id/update', (req, res) => {
   console.log(req.body);
   const shortID = req.params.id;
   urlDatabase[shortID] = req.body.longURL;
-  res.redirect(`/urls`);
+  return res.redirect(`/urls`);
+})
+
+/*end point to handle the registration submission
+// this endpoint should add a new user object to the global users object. THe user object should include the user's id,email and password.
+// 1. To generate a random user is use the same function you use to gneerate randoom ids for urls
+
+// after adding the user set a user_id coookie contaiing the users snewly generated id
+
+//3 redirect the user to the urls page
+
+// 4 test that the users object is proplerly being appendded to. You can insert a console.log or debugger prior to the redirect logic
+
+// also test the user_id cookie is being set correctly upon redirection. You alrdy did it earlier
+
+IN: email, password
+OUT: user object containing id, email, password
+*/
+// email and passsword returning 
+app.post('/register', (req, res) => {
+  res.cookie('user_id', generateRandomString());
+  console.log('req body', req.body);
+  console.log('email and password', req.body.email, req.body.password);
+  return res.redirect(`/urls`);
 })
 
 app.listen(PORT, () => {
