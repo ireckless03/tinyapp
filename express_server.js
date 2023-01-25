@@ -73,6 +73,17 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
+// gets user id and creates a cookie, redirect to main url page
+app.post('/login', (req, res) => {
+  res.cookie('userName', req.body.userName);
+  return res.redirect(`/urls`);
+})
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('userName');
+  return res.redirect(`/urls`);
+})
+
 // Delete a URL, redirect to main url page
 app.post('/urls/:id/delete', (req, res) => {
   const shortID = req.params.id;
@@ -93,17 +104,6 @@ app.post('/urls/:id/update', (req, res) => {
   const shortID = req.params.id;
   urlDatabase[shortID] = req.body.longURL;
   res.redirect(`/urls`);
-})
-
-// gets user id and creates a cookie, redirect to main url page
-app.post('/login', (req, res) => {
-  res.cookie('userName', req.body.userName);
-  return res.redirect(`/urls`);
-})
-
-app.post('/logout', (req, res) => {
-  res.clearCookie('userName');
-  return res.redirect(`/urls`);
 })
 
 app.listen(PORT, () => {
