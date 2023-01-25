@@ -46,12 +46,20 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, userName: req.cookies.userName };
+  let loggedInUser = req.cookies.user_id
+  const templateVars = {
+    urls: urlDatabase, 
+    user: loggedInUser 
+  };
   return res.render("urls_index", templateVars);
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { urls: urlDatabase, userName: req.cookies.userName };
+  let loggedInUser = req.cookies.user_id
+  const templateVars = { 
+    urls: urlDatabase, 
+    user: loggedInUser 
+  };
   return res.render("url_register", templateVars);
 });
 
@@ -60,16 +68,21 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { urls: urlDatabase, userName: req.cookies.userName };
+  let loggedInUser = req.cookies.user_id
+  const templateVars = { 
+    urls: urlDatabase, 
+    users: loggedInUser
+  };
   return res.render("urls_new", templateVars)
 });
 
 
 app.get("/urls/:id", (req, res) => {
+  let loggedInUser = req.cookies.user_id
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    userName: req.cookies.userName 
+    users: loggedInUser
   };
   return res.render('urls_show',templateVars);
 });
@@ -90,10 +103,10 @@ app.post("/urls", (req, res) => {
 });
 
 // gets user id and creates a cookie, redirect to main url page
-app.post('/login', (req, res) => {
-  res.cookie('userName', req.body.userName);
-  return res.redirect(`/urls`);
-})
+// app.post('/login', (req, res) => {
+//   res.cookie('userName', req.body.userName);
+//   return res.redirect(`/urls`);
+// })
 
 app.post('/logout', (req, res) => {
   res.clearCookie('userName');
@@ -141,15 +154,13 @@ OUT: user object containing id, email, password
 // addded random generated user id, and added email and password to users object
 
 app.post('/register', (req, res) => {
-  const templateVars = { 
+  const newUser = { 
     user_id: generateRandomString(), 
     email: req.body.email,
     password: req.body.password
   };
-  users[templateVars.user_id] = templateVars;
-  // set cookie for user_id
-  res.cookie('user_id', templateVars);
-  console.log(users)
+  users[newUser.user_id] = newUser;
+  res.cookie('user_id', newUser.user_id);
   return res.redirect(`/urls`);
 })
 
