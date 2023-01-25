@@ -116,6 +116,7 @@ app.post('/urls/:id/edit', (req, res) => {
 
 // after clicking submit to update url, redirect to main url page
 app.post('/urls/:id/update', (req, res) => {
+  res.cookie()
   console.log(req.body);
   const shortID = req.params.id;
   urlDatabase[shortID] = req.body.longURL;
@@ -138,10 +139,17 @@ IN: email, password
 OUT: user object containing id, email, password
 */
 // email and passsword returning 
+// addded random generated user id, and added email and password to users object
+
 app.post('/register', (req, res) => {
-  res.cookie('user_id', generateRandomString());
-  console.log('req body', req.body);
-  console.log('email and password', req.body.email, req.body.password);
+  res.cookie('user_id', req.body)
+  const templateVars = { 
+    user_id: generateRandomString(), 
+    email: req.body.email,
+    password: req.body.password
+  };
+  users[templateVars.user_id] = templateVars;
+  console.log(users)
   return res.redirect(`/urls`);
 })
 
