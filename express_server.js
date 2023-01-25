@@ -10,6 +10,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const usernames = {}
 const generateRandomString = () => {
   var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
   var string_length = 6;
@@ -84,8 +85,7 @@ app.post('/urls/:id/update', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
-  console.log(req.body);
-  const username = req.cookie
+  res.cookie('username', req.body.username);
   res.redirect(`/urls`);
 })
 
