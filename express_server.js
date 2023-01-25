@@ -11,15 +11,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookies());
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+  Kilua: {
+    id: 'Kilua',
+    email: "Kilua@example.com",
+    password: "hmmmmmmm",
   },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
+  Gon: {
+    id: "Gon",
+    email: "Gon1@example.com",
+    password: "sniffsniff",
   },
 };
 
@@ -116,7 +116,6 @@ app.post('/urls/:id/edit', (req, res) => {
 
 // after clicking submit to update url, redirect to main url page
 app.post('/urls/:id/update', (req, res) => {
-  res.cookie()
   console.log(req.body);
   const shortID = req.params.id;
   urlDatabase[shortID] = req.body.longURL;
@@ -142,13 +141,14 @@ OUT: user object containing id, email, password
 // addded random generated user id, and added email and password to users object
 
 app.post('/register', (req, res) => {
-  res.cookie('user_id', req.body)
   const templateVars = { 
     user_id: generateRandomString(), 
     email: req.body.email,
     password: req.body.password
   };
   users[templateVars.user_id] = templateVars;
+  // set cookie for user_id
+  res.cookie('user_id', templateVars);
   console.log(users)
   return res.redirect(`/urls`);
 })
