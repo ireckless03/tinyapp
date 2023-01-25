@@ -4,6 +4,10 @@ const PORT = 8080;
 
 app.set("view engine", "ejs");
 
+var cookies = require("cookie-parser"); 
+
+let users = {
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -24,8 +28,15 @@ const generateRandomString = () => {
 
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cookies());
+
 app.get("/", (req, res) => {
   res.redirect('/urls');
+});
+
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase, userName: req.cookies.userName };
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
@@ -46,37 +57,36 @@ app.get("/urls/:id", (req, res) => {
   res.render('urls_show',templateVars);
 });
 
-app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});
-
-app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
-  res.redirect(`/urls/${id}`);
-});
-
+// if short url entered in path, redirect to long url
 app.get(`/u/:id`, (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id];
   res.redirect(longURL);
 });
 
+// generate short url and save short & long to database
+app.post("/urls", (req, res) => {
+  console.log(req.body); 
+  const id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+  res.redirect(`/urls/${id}`);
+});
+
+// Delete a URL, redirect to main url page
 app.post('/urls/:id/delete', (req, res) => {
   const shortID = req.params.id;
   delete urlDatabase[shortID];
   res.redirect('/urls');
 })
 
+// to eddit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
   const shortID = req.params.id;
  // urlDatabase[shortID] = 
   res.redirect(`/urls/${shortID}/`);
 })
 
-
+// after clicking submit to update url, redirect to main url page
 app.post('/urls/:id/update', (req, res) => {
   console.log(req.body);
   const shortID = req.params.id;
@@ -84,8 +94,9 @@ app.post('/urls/:id/update', (req, res) => {
   res.redirect(`/urls`);
 })
 
+// gets user id and creates a cookie, redirect to main url page, need to show the cookie
 app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username);
+  res.cookie('userName', req.body.userName);
   res.redirect(`/urls`);
 })
 

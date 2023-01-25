@@ -16,12 +16,15 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <form method="POST" action="/login">
-          <label for="name">username:<br>
-            <input type="text" name="username" ><br></label>
-            <button type="submit">login</button>
-        </form>
+        <% if (userName) {%>
+          <h5>Logged in as <%= userName %> </h5>
+          <% } else { %>
       </div>
+      <form method="POST" action="/login">
+        <p>Username: <input type="userName" name="userName"/></p>
+        <button>Login!</button>
+        <% }; %>
+      </form>
     </div>
   </nav>
 </header>
