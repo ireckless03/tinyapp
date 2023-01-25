@@ -44,7 +44,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, userName: req.cookies.userName };
   res.render("urls_new", templateVars)
 });
 
@@ -52,7 +52,8 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
-    longURL: urlDatabase[req.params.id]
+    longURL: urlDatabase[req.params.id],
+    userName: req.cookies.userName 
   };
   res.render('urls_show',templateVars);
 });
@@ -94,10 +95,15 @@ app.post('/urls/:id/update', (req, res) => {
   res.redirect(`/urls`);
 })
 
-// gets user id and creates a cookie, redirect to main url page, need to show the cookie
+// gets user id and creates a cookie, redirect to main url page
 app.post('/login', (req, res) => {
   res.cookie('userName', req.body.userName);
-  res.redirect(`/urls`);
+  return res.redirect(`/urls`);
+})
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('userName');
+  return res.redirect(`/urls`);
 })
 
 app.listen(PORT, () => {
