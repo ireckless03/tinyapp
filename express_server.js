@@ -144,6 +144,11 @@ app.post('/register', (req, res) => {
     return res.status(400).send ("Email and password are required!");
   }
 
+  for (const user in users) {
+    if (users[user].email.toLowerCase() === req.body.email.toLowerCase()) {
+      return res.status(400).send ("User already exists!");
+}
+
   const newUser = { 
     user_id: generateRandomString(), 
     email: req.body.email,
@@ -152,9 +157,9 @@ app.post('/register', (req, res) => {
   users[newUser.user_id] = newUser;
   res.cookie('user_id', newUser.user_id);
 
-  console.log(Object.values(users));
   
   return res.redirect(`/urls`);
+}
 })
 
 app.listen(PORT, () => {
