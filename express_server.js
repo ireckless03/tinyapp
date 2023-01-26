@@ -8,6 +8,7 @@ let cookies = require("cookie-parser");
 
 app.use(express.urlencoded({ extended: true }));
 
+
 app.use(cookies());
 
 const users = {
@@ -55,6 +56,7 @@ app.get("/urls", (req, res) => {
 
 app.get("/login", (req, res) => {
   let loggedInUser = req.cookies.user_id;
+  console.log('users----',users)
   const templateVars = {
     urls: urlDatabase,
     userID: loggedInUser,
@@ -114,22 +116,29 @@ app.post("/urls", (req, res) => {
   return res.redirect(`/urls/${id}`);
 });
 
-//checks user id and pw 
+//checks user id and pw
 // if ok then redirects to homepage
 // if not error message
 app.post('/login', (req, res) => {
+  console.log(users)
+  let email = req.body.email.toLocaleLowerCase();
+  let password = req.body.password;
   console.log('req body',req.body);
+  // if email cant be found return reponse 403 with no user found
+  // if email is found but password is wrong return reponse 403 with wrong password
+  // if both pass then set user_id cookie to the user's ID then redirect to homepage
   for (const user of Object.keys(users)) {
-    console.log('user',user);
-    if (req.body.email.toLocaleLowerCase === users[user].email.toLocaleLowerCase && req.body.password === users[user].password) {
-      res.cookie('user_id', user); // user shows as gon/kilua/ unique generated ID
-      return res.redirect('/');
+    if (email !== users[user].email) {
+    } else {
+      console.log('emails match email in database',email,'//', users[user].email);
     }
-    }
-
-return res.status(400).send("Wrong username or password"); 
+  }
+  console.log('no emails match email in database')
 });
 
+//if (email.toLocaleLowerCase === users[user].email.toLocaleLowerCase && password === users[user].password) {
+  // res.cookie('user_id', user); // user shows as gon/kilua/ unique generated ID
+  // return res.redirect('/');
 
 
 app.post('/logout', (req, res) => {
@@ -177,9 +186,10 @@ app.post('/register', (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
+
   users[newUser.user_id] = newUser;
   res.cookie('user_id', newUser.user_id);
-console.log(users);
+  console.log(users);
   
   return res.redirect(`/urls`);
   
@@ -189,13 +199,4 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-// postman and rested curl
-// form tag or anchor to link to another page
 
-// why is delete route a post request? - trying to change data in backend
-//
-// Get - request doesnt alter anything
-
-// C
-// R
-// D - app.delete
