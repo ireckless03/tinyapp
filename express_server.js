@@ -4,7 +4,7 @@ const PORT = 8080;
 
 app.set("view engine", "ejs");
 
-var cookies = require("cookie-parser"); 
+let cookies = require("cookie-parser");
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -23,46 +23,56 @@ const users = {
   },
 };
 
-
+/////////// HEADER if users are not logged in show register link and log in link
+/////////// If user is logged in then show logout button
+///////////
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-
 const generateRandomString = () => {
-  var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-  var string_length = 6;
-  var string = '';
-  for (var i = 0; i < string_length; i++) {
-    var number = Math.floor(Math.random() * chars.length);
+  let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+  let string_length = 6;
+  let string = '';
+  for (let i = 0; i < string_length; i++) {
+    let number = Math.floor(Math.random() * chars.length);
     string += chars.substring(number, number + 1);
   }
   return string;
-}
+};
 
 app.get("/", (req, res) => {
   return res.redirect('/urls');
 });
 
 app.get("/urls", (req, res) => {
-  let loggedInUser = req.cookies.user_id
+  let loggedInUser = req.cookies.user_id;
   const templateVars = {
-    urls: urlDatabase, 
+    urls: urlDatabase,
     userID: loggedInUser,
     user: users[loggedInUser]
   };
   return res.render("urls_index", templateVars);
 });
 
-app.get("/register", (req, res) => {
-  let loggedInUser = req.cookies.user_id
-  const templateVars = { 
-    urls: urlDatabase, 
+app.get("/login", (req, res) => {
+  let loggedInUser = req.cookies.user_id;
+  const templateVars = {
+    urls: urlDatabase,
     userID: loggedInUser,
     user: users[loggedInUser]
   };
-  console.log(users)
+  return res.render("url_login", templateVars);
+});
+
+app.get("/register", (req, res) => {
+  let loggedInUser = req.cookies.user_id;
+  const templateVars = {
+    urls: urlDatabase,
+    userID: loggedInUser,
+    user: users[loggedInUser]
+  };
   return res.render("url_register", templateVars);
 });
 
@@ -71,18 +81,18 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  let loggedInUser = req.cookies.user_id
-  const templateVars = { 
-    urls: urlDatabase, 
+  let loggedInUser = req.cookies.user_id;
+  const templateVars = {
+    urls: urlDatabase,
     userID: loggedInUser,
     user: users[loggedInUser]
   };
-  return res.render("urls_new", templateVars)
+  return res.render("urls_new", templateVars);
 });
 
 
 app.get("/urls/:id", (req, res) => {
-  let loggedInUser = req.cookies.user_id
+  let loggedInUser = req.cookies.user_id;
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
@@ -116,41 +126,45 @@ app.post("/urls", (req, res) => {
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   return res.redirect(`/urls`);
-})
+});
 
 // Delete a URL, redirect to main url page
 app.post('/urls/:id/delete', (req, res) => {
   const shortID = req.params.id;
   delete urlDatabase[shortID];
   return res.redirect('/urls');
-})
+});
 
 // to eddit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
   const shortID = req.params.id;
- // urlDatabase[shortID] = 
+  // urlDatabase[shortID] =
   return res.redirect(`/urls/${shortID}/`);
-})
+});
 
 // after clicking submit to update url, redirect to main url page
 app.post('/urls/:id/update', (req, res) => {
   const shortID = req.params.id;
   urlDatabase[shortID] = req.body.longURL;
   return res.redirect(`/urls`);
-})
+});
 
+////////////////
+///////////// checks for emial and pw to be valid
+//  also checks for existing user
 app.post('/register', (req, res) => {
   if (req.body.email === '' || req.body.password === '') {
-    return res.status(400).send ("Email and password are required!");
+    return res.status(400).send("Email and password are required!");
+  }
+  
+  for (const values of Object.values(users)) {
+    if (values.email.toLocaleLowerCase() === req.body.email.toLocaleLowerCase()) {
+      return res.status(400).send("User already exists!");
+    }
   }
 
-  for (const user in users) {
-    if (users[user].email.toLowerCase() === req.body.email.toLowerCase()) {
-      return res.status(400).send ("User already exists!");
-}
-
-  const newUser = { 
-    user_id: generateRandomString(), 
+  const newUser = {
+    user_id: generateRandomString(),
     email: req.body.email,
     password: req.body.password
   };
@@ -159,8 +173,8 @@ app.post('/register', (req, res) => {
 
   
   return res.redirect(`/urls`);
-}
-})
+  
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -169,10 +183,10 @@ app.listen(PORT, () => {
 // postman and rested curl
 // form tag or anchor to link to another page
 
-// why is delete route a post request? - trying to change data in backend 
-// 
+// why is delete route a post request? - trying to change data in backend
+//
 // Get - request doesnt alter anything
 
 // C
 // R
-// D - app.delete 
+// D - app.delete
