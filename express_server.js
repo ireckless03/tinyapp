@@ -49,7 +49,8 @@ app.get("/urls", (req, res) => {
   let loggedInUser = req.cookies.user_id
   const templateVars = {
     urls: urlDatabase, 
-    user: loggedInUser 
+    userID: loggedInUser,
+    user: users[loggedInUser]
   };
   return res.render("urls_index", templateVars);
 });
@@ -58,8 +59,10 @@ app.get("/register", (req, res) => {
   let loggedInUser = req.cookies.user_id
   const templateVars = { 
     urls: urlDatabase, 
-    user: loggedInUser 
+    userID: loggedInUser,
+    user: users[loggedInUser]
   };
+  console.log(users)
   return res.render("url_register", templateVars);
 });
 
@@ -71,7 +74,8 @@ app.get("/urls/new", (req, res) => {
   let loggedInUser = req.cookies.user_id
   const templateVars = { 
     urls: urlDatabase, 
-    users: loggedInUser
+    userID: loggedInUser,
+    user: users[loggedInUser]
   };
   return res.render("urls_new", templateVars)
 });
@@ -82,7 +86,9 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    users: loggedInUser
+    userID: loggedInUser,
+    user: users[loggedInUser]
+    
   };
   return res.render('urls_show',templateVars);
 });
@@ -96,7 +102,6 @@ app.get(`/u/:id`, (req, res) => {
 
 // generate short url and save short & long to database
 app.post("/urls", (req, res) => {
-  console.log(req.body); 
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
   return res.redirect(`/urls/${id}`);
@@ -109,7 +114,7 @@ app.post("/urls", (req, res) => {
 // })
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('userName');
+  res.clearCookie('user_id');
   return res.redirect(`/urls`);
 })
 
@@ -129,29 +134,10 @@ app.post('/urls/:id/edit', (req, res) => {
 
 // after clicking submit to update url, redirect to main url page
 app.post('/urls/:id/update', (req, res) => {
-  console.log(req.body);
   const shortID = req.params.id;
   urlDatabase[shortID] = req.body.longURL;
   return res.redirect(`/urls`);
 })
-
-/*end point to handle the registration submission
-// this endpoint should add a new user object to the global users object. THe user object should include the user's id,email and password.
-// 1. To generate a random user is use the same function you use to gneerate randoom ids for urls
-
-// after adding the user set a user_id coookie contaiing the users snewly generated id
-
-//3 redirect the user to the urls page
-
-// 4 test that the users object is proplerly being appendded to. You can insert a console.log or debugger prior to the redirect logic
-
-// also test the user_id cookie is being set correctly upon redirection. You alrdy did it earlier
-
-IN: email, password
-OUT: user object containing id, email, password
-*/
-// email and passsword returning 
-// addded random generated user id, and added email and password to users object
 
 app.post('/register', (req, res) => {
   const newUser = { 
@@ -161,6 +147,7 @@ app.post('/register', (req, res) => {
   };
   users[newUser.user_id] = newUser;
   res.cookie('user_id', newUser.user_id);
+ 
   return res.redirect(`/urls`);
 })
 
