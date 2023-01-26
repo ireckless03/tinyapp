@@ -8,7 +8,6 @@ let cookies = require("cookie-parser");
 
 app.use(express.urlencoded({ extended: true }));
 
-
 app.use(cookies());
 
 const users = {
@@ -31,9 +30,9 @@ const urlDatabase = {
 
 const generateRandomString = () => {
   let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-  let string_length = 6;
+  let stringLength = 6;
   let string = '';
-  for (let i = 0; i < string_length; i++) {
+  for (let i = 0; i < stringLength; i++) {
     let number = Math.floor(Math.random() * chars.length);
     string += chars.substring(number, number + 1);
   }
@@ -56,7 +55,7 @@ app.get("/urls", (req, res) => {
 
 app.get("/login", (req, res) => {
   let loggedInUser = req.cookies.user_id;
-  console.log('users----',users)
+  console.log('users----',users);
   const templateVars = {
     urls: urlDatabase,
     userID: loggedInUser,
@@ -116,31 +115,25 @@ app.post("/urls", (req, res) => {
   return res.redirect(`/urls/${id}`);
 });
 
-//checks user id and pw
-// if ok then redirects to homepage
-// if not error message
+//checks for correct login credentials
 app.post('/login', (req, res) => {
-  console.log(users)
   let email = req.body.email.toLocaleLowerCase();
   let password = req.body.password;
-  console.log('req body',req.body);
-  // if email cant be found return reponse 403 with no user found
-  // if email is found but password is wrong return reponse 403 with wrong password
-  // if both pass then set user_id cookie to the user's ID then redirect to homepage
   for (const user of Object.keys(users)) {
-    if (email !== users[user].email) {
+    if (email !== users[user].email.toLocaleLowerCase()) {
     } else {
-      console.log('emails match email in database',email,'//', users[user].email);
+      if (password !== users[user].password) {
+      } else {
+        res.cookie('user_id', user);
+        return res.redirect('/urls');
+      }
+      return res.status(400).send("Wrong Password!");
     }
   }
-  console.log('no emails match email in database')
+  return res.status(400).send("User Not Found!");
 });
 
-//if (email.toLocaleLowerCase === users[user].email.toLocaleLowerCase && password === users[user].password) {
-  // res.cookie('user_id', user); // user shows as gon/kilua/ unique generated ID
-  // return res.redirect('/');
-
-
+//logs out and clears cookies
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   return res.redirect(`/urls`);
@@ -153,14 +146,14 @@ app.post('/urls/:id/delete', (req, res) => {
   return res.redirect('/urls');
 });
 
-// to eddit long url, redirects to urlshort page
+// to edit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
   const shortID = req.params.id;
   // urlDatabase[shortID] =
   return res.redirect(`/urls/${shortID}/`);
 });
 
-// after clicking submit to update url, redirect to main url page
+// takes in submission for url change and changes urlDatabase
 app.post('/urls/:id/update', (req, res) => {
   const shortID = req.params.id;
   urlDatabase[shortID] = req.body.longURL;
@@ -175,8 +168,8 @@ app.post('/register', (req, res) => {
     return res.status(400).send("Email and password are required!");
   }
   
-  for (const values of Object.values(users)) {
-    if (values.email.toLocaleLowerCase() === req.body.email.toLocaleLowerCase()) {
+  for (const user of Object.values(users)) {
+    if (user.email.toLocaleLowerCase() === req.body.email.toLocaleLowerCase()) {
       return res.status(400).send("User already exists!");
     }
   }
