@@ -88,6 +88,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  
   let loggedInUser = req.cookies.user_id;
   const templateVars = {
     id: req.params.id,
@@ -108,6 +109,7 @@ app.get(`/u/:id`, (req, res) => {
 
 // generate short url and save short & long to database
 app.post("/urls", (req, res) => {
+  // if user true then
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
   return res.redirect(`/urls/${id}`);
