@@ -140,6 +140,10 @@ app.post('/urls/:id/update', (req, res) => {
 })
 
 app.post('/register', (req, res) => {
+  if (req.body.email === '' || req.body.password === '') {
+    return res.status(400).send ("Email and password are required!");
+  }
+
   const newUser = { 
     user_id: generateRandomString(), 
     email: req.body.email,
@@ -147,7 +151,9 @@ app.post('/register', (req, res) => {
   };
   users[newUser.user_id] = newUser;
   res.cookie('user_id', newUser.user_id);
- 
+
+  console.log(Object.values(users));
+  
   return res.redirect(`/urls`);
 })
 
