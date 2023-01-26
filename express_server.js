@@ -5,6 +5,7 @@ const PORT = 8080;
 app.set("view engine", "ejs");
 
 let cookies = require("cookie-parser");
+const { restart } = require("nodemon");
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,9 +25,20 @@ const users = {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "Kilua", 
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "Gon", 
+  },
 };
+// create new function to filter database, then set to new variable then pass it to urls
+
+const filteredData = (user) => {
+  
+}
 
 const generateRandomString = () => {
   let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
@@ -35,7 +47,7 @@ const generateRandomString = () => {
   for (let i = 0; i < stringLength; i++) {
     let number = Math.floor(Math.random() * chars.length);
     string += chars.substring(number, number + 1);
-  }
+  }f
   return string;
 };
 
@@ -50,6 +62,7 @@ app.get("/urls", (req, res) => {
     userID: loggedInUser,
     user: users[loggedInUser]
   };
+  console.log('template====',templateVars)
   return res.render("urls_index", templateVars);
 });
 
@@ -88,31 +101,37 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  
+  const id = req.params.id;
+  if (urlDatabase[id]) {
   let loggedInUser = req.cookies.user_id;
   const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    id,
+    longURL: urlDatabase[id].longURL,
     userID: loggedInUser,
     user: users[loggedInUser]
     
   };
   return res.render('urls_show',templateVars);
+}
+return res.status(404).send('Page not found');
 });
 
 // if short url entered in path, redirect to long url
 app.get(`/u/:id`, (req, res) => {
   const id = req.params.id;
-  const longURL = urlDatabase[id];
+  const longURL = urlDatabase[id].longURL;
   return res.redirect(longURL);
 });
 
 // generate short url and save short & long to database
 app.post("/urls", (req, res) => {
   // if user true then
-  const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
+  if (req.cookies.user_id) {
+  const id = generateRandomString()
+  urlDatabase[id].longURL = req.body.longURL;
   return res.redirect(`/urls/${id}`);
+  }
+  return res.status(401).send('Not authorized to do this action')
 });
 
 //checks for correct login credentials and redirects to homepage
