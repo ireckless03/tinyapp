@@ -23,9 +23,6 @@ const users = {
   },
 };
 
-/////////// HEADER if users are not logged in show register link and log in link
-/////////// If user is logged in then show logout button
-///////////
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -117,11 +114,23 @@ app.post("/urls", (req, res) => {
   return res.redirect(`/urls/${id}`);
 });
 
-// gets user id and creates a cookie, redirect to main url page
-// app.post('/login', (req, res) => {
-//   res.cookie('userName', req.body.userName);
-//   return res.redirect(`/urls`);
-// })
+//checks user id and pw 
+// if ok then redirects to homepage
+// if not error message
+app.post('/login', (req, res) => {
+  console.log('req body',req.body);
+  for (const user of Object.keys(users)) {
+    console.log('user',user);
+    if (req.body.email.toLocaleLowerCase === users[user].email.toLocaleLowerCase && req.body.password === users[user].password) {
+      res.cookie('user_id', user); // user shows as gon/kilua/ unique generated ID
+      return res.redirect('/');
+    }
+    }
+
+return res.status(400).send("Wrong username or password"); 
+});
+
+
 
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
@@ -170,7 +179,7 @@ app.post('/register', (req, res) => {
   };
   users[newUser.user_id] = newUser;
   res.cookie('user_id', newUser.user_id);
-
+console.log(users);
   
   return res.redirect(`/urls`);
   
