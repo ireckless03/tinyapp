@@ -14,12 +14,12 @@ const users = {
   Kilua: {
     id: 'Kilua',
     email: "Kilua@example.com",
-    password: "hmmmmmmm",
+    password: "dd",
   },
   Gon: {
     id: "Gon",
     email: "Gon1@example.com",
-    password: "sniffsniff",
+    password: "dd",
   },
 };
 
@@ -55,7 +55,6 @@ app.get("/urls", (req, res) => {
 
 app.get("/login", (req, res) => {
   let loggedInUser = req.cookies.user_id;
-  console.log('users----',users);
   const templateVars = {
     urls: urlDatabase,
     userID: loggedInUser,
@@ -88,7 +87,6 @@ app.get("/urls/new", (req, res) => {
   return res.render("urls_new", templateVars);
 });
 
-
 app.get("/urls/:id", (req, res) => {
   let loggedInUser = req.cookies.user_id;
   const templateVars = {
@@ -115,7 +113,7 @@ app.post("/urls", (req, res) => {
   return res.redirect(`/urls/${id}`);
 });
 
-//checks for correct login credentials
+//checks for correct login credentials and redirects to homepage
 app.post('/login', (req, res) => {
   let email = req.body.email.toLocaleLowerCase();
   let password = req.body.password;
@@ -133,10 +131,10 @@ app.post('/login', (req, res) => {
   return res.status(400).send("User Not Found!");
 });
 
-//logs out and clears cookies
+//logs user out and clears cookies
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
-  return res.redirect(`/urls`);
+  return res.redirect(`/login`);
 });
 
 // Delete a URL, redirect to main url page
@@ -149,7 +147,6 @@ app.post('/urls/:id/delete', (req, res) => {
 // to edit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
   const shortID = req.params.id;
-  // urlDatabase[shortID] =
   return res.redirect(`/urls/${shortID}/`);
 });
 
@@ -160,9 +157,7 @@ app.post('/urls/:id/update', (req, res) => {
   return res.redirect(`/urls`);
 });
 
-////////////////
-///////////// checks for emial and pw to be valid
-//  also checks for existing user
+// checks for existing user before allowing registration
 app.post('/register', (req, res) => {
   if (req.body.email === '' || req.body.password === '') {
     return res.status(400).send("Email and password are required!");
@@ -182,10 +177,7 @@ app.post('/register', (req, res) => {
 
   users[newUser.user_id] = newUser;
   res.cookie('user_id', newUser.user_id);
-  console.log(users);
-  
   return res.redirect(`/urls`);
-  
 });
 
 app.listen(PORT, () => {
