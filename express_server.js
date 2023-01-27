@@ -36,8 +36,13 @@ const urlDatabase = {
 };
 // create new function to filter database, then set to new variable then pass it to urls
 
-const filteredData = (user) => {
-  
+function findKeyByValue(obj, value) {
+  for (let key in obj) {
+    if (obj[key].userID === value) {
+      return key;
+    }
+  }
+  return undefined;
 }
 
 const generateRandomString = () => {
@@ -62,7 +67,8 @@ app.get("/urls", (req, res) => {
     userID: loggedInUser,
     user: users[loggedInUser]
   };
-  console.log('template====',templateVars)
+  let id = findKeyByValue(urlDatabase, 'Gon')
+  console.log(urlDatabase[id])
   return res.render("urls_index", templateVars);
 });
 
