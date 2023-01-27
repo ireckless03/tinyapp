@@ -116,27 +116,21 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   let loggedInUser = req.cookies.user_id
+  if (!urlDatabase[shortURL]) {
+    return res.status(404).send('Page not found');
+  }
 
   if (!loggedInUser ) {
     return res.status(403).send('Not authorized to view, please log in')
   }
 
- // we have logged in user ID,
-  // check if this user made that short url
-  // how? for loop?
   for (const shortURL in urlDatabase) {
-    //  getting the short ID
     console.log(shortURL)
     if (urlDatabase[shortURL].userID === loggedInUser) {
       return
     }
     return res.status(403).send('This is a Private Link')
   }
-
-  
-
-  if (urlDatabase[shortURL]) {
-  let loggedInUser = req.cookies.user_id;
 
   const templateVars = {
     shortURL,
@@ -145,10 +139,7 @@ app.get("/urls/:id", (req, res) => {
     user: users[loggedInUser]
     
   };
-  console.log('template vars',templateVars)
   return res.render('urls_show',templateVars);
-}
-return res.status(404).send('Page not found');
 });
 
 // if short url entered in path, redirect to long url
