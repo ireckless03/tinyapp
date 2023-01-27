@@ -152,7 +152,7 @@ app.get(`/u/:id`, (req, res) => {
 // generate short url and save short & long to database
 app.post("/urls", (req, res) => {
   // if user true then
-  console.log(req.body)
+  
   if (req.cookies.user_id) {
   const id = generateRandomString()
   urlDatabase[id] = {
@@ -192,7 +192,6 @@ app.post('/logout', (req, res) => {
 app.post('/urls/:id/delete', (req, res) => {
   const shortURL = req.params.id;
   const loggedInUser = req.cookies.user_id
-  console.log
   if (isUserOwner(shortURL, loggedInUser)){
   delete urlDatabase[shortURL];
   return res.redirect('/urls')
