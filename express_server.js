@@ -36,7 +36,7 @@ const urlDatabase = {
 };
 // create new function to filter database, then set to new variable then pass it to urls
 
-function findKeyByValue(obj, value) {
+const findKeyByValue = (obj, value) => {
   for (let key in obj) {
     if (obj[key].userID === value) {
       return key;
@@ -44,6 +44,7 @@ function findKeyByValue(obj, value) {
   }
   return undefined;
 }
+
 
 const generateRandomString = () => {
   let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
