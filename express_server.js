@@ -1,11 +1,13 @@
 const express = require("express");
+const { restart } = require("nodemon");
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080;
+
 
 app.set("view engine", "ejs");
 
 let cookies = require("cookie-parser");
-const { restart } = require("nodemon");
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -15,12 +17,12 @@ const users = {
   Kilua: {
     id: 'Kilua',
     email: "Kilua@example.com",
-    password: "dd",
+    password: bcrypt.hashSync('dd', 10),
   },
   Gon: {
     id: "Gon",
     email: "Gon1@example.com",
-    password: "dd",
+    password: bcrypt.hashSync('dd', 10),
   },
 };
 
@@ -170,8 +172,10 @@ app.post('/login', (req, res) => {
   let password = req.body.password;
   for (const user of Object.keys(users)) {
     if (email !== users[user].email.toLocaleLowerCase()) {
+      console.log('user hashedpassword',users[user].password)
+      console.log('entered pw',password)
     } else {
-      if (password !== users[user].password) {
+      if (!bcrypt.compareSync(password, users[user].password)) {
       } else {
         res.cookie('user_id', user);
         return res.redirect('/urls');
@@ -233,13 +237,15 @@ app.post('/register', (req, res) => {
       return res.status(400).send("User already exists!");
     }
   }
-
+  
   const newUser = {
     user_id: generateRandomString(),
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, 10)
   };
-
+  console.log(newUser)
+  console.log('newly created',req.body.password)
+  console.log('new hashed pw',newUser.password)
   users[newUser.user_id] = newUser;
   res.cookie('user_id', newUser.user_id);
   return res.redirect(`/urls`);
