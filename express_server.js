@@ -46,40 +46,45 @@ const generateRandomString = () => {
   return string;
 };
 
+const urlsForUser = (user) => {
+  let filteredData = {}
+  for (const urls in urlDatabase) {
+    if (urlDatabase[urls].userID === user) {
+      filteredData[urls] = urlDatabase[urls]
+    }
+  }
+  if (filteredData === {}){
+    return false
+  }
+ return filteredData
+}
+
 app.get("/", (req, res) => {
   return res.redirect('/urls');
 });
 
+// only allows users to see their own urls
 app.get("/urls", (req, res) => {
   let loggedInUser = req.cookies.user_id;
   if (!loggedInUser) {
     return res.status(403).send('Please Log in first')
   }
-  // if user is logged in, retreive their ID
-  // user their ID to find the keys(shortURLs) they've entered
-  let filteredData = {};
-  
-  for (const urls in urlDatabase) {
-    if (urlDatabase[urls].userID === loggedInUser) {
-      filteredData[urls] = urlDatabase[urls]
-    }
-  }
 
   const templateVars = {
-    urls: filteredData,
+    urls: urlsForUser(loggedInUser),
     userID: loggedInUser,
     user: users[loggedInUser]
   };
-
+  console.log('temp vars',templateVars)
   return res.render("urls_index", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  let loggedInUser = req.cookies.user_id;
+  let id = req.cookies.user_id;
   const templateVars = {
     urls: urlDatabase,
-    userID: loggedInUser,
-    user: users[loggedInUser]
+    userID: id,
+    user: users[id]
   };
   return res.render("url_login", templateVars);
 });
@@ -107,18 +112,40 @@ app.get("/urls/new", (req, res) => {
   };
   return res.render("urls_new", templateVars);
 });
-
+//
 app.get("/urls/:id", (req, res) => {
-  const id = req.params.id;
-  if (urlDatabase[id]) {
+  const shortURL = req.params.id;
+  let loggedInUser = req.cookies.user_id
+
+  if (!loggedInUser ) {
+    return res.status(403).send('Not authorized to view, please log in')
+  }
+
+ // we have logged in user ID,
+  // check if this user made that short url
+  // how? for loop?
+  for (const shortURL in urlDatabase) {
+    //  getting the short ID
+    console.log(shortURL)
+    if (urlDatabase[shortURL].userID === loggedInUser) {
+      return
+    }
+    return res.status(403).send('This is a Private Link')
+  }
+
+  
+
+  if (urlDatabase[shortURL]) {
   let loggedInUser = req.cookies.user_id;
+
   const templateVars = {
-    id,
-    longURL: urlDatabase[id].longURL,
+    shortURL,
+    longURL: urlDatabase[shortURL].longURL,
     userID: loggedInUser,
     user: users[loggedInUser]
     
   };
+  console.log('template vars',templateVars)
   return res.render('urls_show',templateVars);
 }
 return res.status(404).send('Page not found');
