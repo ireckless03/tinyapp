@@ -46,14 +46,13 @@ const generateRandomString = () => {
   return string;
 };
 
-const isUserOwner = (user) => {
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === loggedInUser) {
-      return true
-    }
+const isUserOwner = (shortURL, user) => {
+  if (urlDatabase[shortURL].userID === user){
+    return true
+  }
     return false
   }
-}
+
 
 const urlsForUser = (user) => {
   let filteredData = {}
@@ -81,7 +80,6 @@ app.get("/urls", (req, res) => {
     userID: loggedInUser,
     user: users[loggedInUser]
   };
-  console.log('temp vars',templateVars)
   return res.render("urls_index", templateVars);
 });
 
@@ -154,13 +152,13 @@ app.get(`/u/:id`, (req, res) => {
 // generate short url and save short & long to database
 app.post("/urls", (req, res) => {
   // if user true then
+  console.log(req.body)
   if (req.cookies.user_id) {
   const id = generateRandomString()
   urlDatabase[id] = {
     longURL: req.body.longURL,
     userID: req.cookies.user_id, 
   };
-  console.log('newly  generated',id)
   return res.redirect(`/urls/${id}`);
   }
   return res.status(401).send('Not authorized to do this action')
@@ -192,27 +190,37 @@ app.post('/logout', (req, res) => {
 
 // Delete a URL, redirect to main url page
 app.post('/urls/:id/delete', (req, res) => {
-  const shortID = req.params.id;
-  delete urlDatabase[shortID];
-  return res.redirect('/urls');
+  const shortURL = req.params.id;
+  const loggedInUser = req.cookies.user_id
+  console.log
+  if (isUserOwner(shortURL, loggedInUser)){
+  delete urlDatabase[shortURL];
+  return res.redirect('/urls')
+  }
+  return res.status(401).send("Only owner can delete")
 });
 
 // to edit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
   const loggedInUser = req.cookies.user_id
-  if (isUserOwner(loggedInUser)){
-  console.log(urlsForUser())
-  const shortID = req.params.id;
-  return res.redirect(`/urls/${shortID}/`)
+  const shortURL = req.params.id;
+  if (!isUserOwner(shortURL, loggedInUser)) {
+  return res.status(401).send('Only the owner can edit this URL')
 }
-alert('Only the owner can edit this URL')
+return res.redirect(`/urls/${shortURL}/`)
 });
 
 // takes in submission for url change and changes urlDatabase
 app.post('/urls/:id/update', (req, res) => {
-  const shortID = req.params.id;
-  urlDatabase[shortID] = req.body.longURL;
+  const shortURL = req.params.id;
+  const loggedInUser = req.cookies.user_id
+  if (isUserOwner(shortURL, loggedInUser)) {
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL, 
+    userID: loggedInUser};
   return res.redirect(`/urls`);
+}
+return res.status(401).send('Only the owner can update this')
 });
 
 // checks for existing user before allowing registration
