@@ -25,11 +25,11 @@ const users = {
 };
 
 const urlDatabase = {
-  "b2xVn2": {
+  b2xVn2: {
     longURL: "http://www.lighthouselabs.ca",
     userID: "Kilua", 
   },
-  "9sm5xK": {
+  s4m5xK: {
     longURL: "http://www.google.com",
     userID: "Gon", 
   },
@@ -46,15 +46,21 @@ const generateRandomString = () => {
   return string;
 };
 
+const isUserOwner = (user) => {
+  for (const shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === loggedInUser) {
+      return true
+    }
+    return false
+  }
+}
+
 const urlsForUser = (user) => {
   let filteredData = {}
   for (const urls in urlDatabase) {
     if (urlDatabase[urls].userID === user) {
       filteredData[urls] = urlDatabase[urls]
     }
-  }
-  if (filteredData === {}){
-    return false
   }
  return filteredData
 }
@@ -124,11 +130,7 @@ app.get("/urls/:id", (req, res) => {
     return res.status(403).send('Not authorized to view, please log in')
   }
 
-  for (const shortURL in urlDatabase) {
-    console.log(shortURL)
-    if (urlDatabase[shortURL].userID === loggedInUser) {
-      return
-    }
+  if(urlDatabase[shortURL].userID !== loggedInUser) {
     return res.status(403).send('This is a Private Link')
   }
 
@@ -158,6 +160,7 @@ app.post("/urls", (req, res) => {
     longURL: req.body.longURL,
     userID: req.cookies.user_id, 
   };
+  console.log('newly  generated',id)
   return res.redirect(`/urls/${id}`);
   }
   return res.status(401).send('Not authorized to do this action')
@@ -196,8 +199,13 @@ app.post('/urls/:id/delete', (req, res) => {
 
 // to edit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
+  const loggedInUser = req.cookies.user_id
+  if (isUserOwner(loggedInUser)){
+  console.log(urlsForUser())
   const shortID = req.params.id;
-  return res.redirect(`/urls/${shortID}/`);
+  return res.redirect(`/urls/${shortID}/`)
+}
+alert('Only the owner can edit this URL')
 });
 
 // takes in submission for url change and changes urlDatabase
