@@ -34,17 +34,6 @@ const urlDatabase = {
     userID: "Gon", 
   },
 };
-// create new function to filter database, then set to new variable then pass it to urls
-
-const findKeyByValue = (obj, value) => {
-  for (let key in obj) {
-    if (obj[key].userID === value) {
-      return key;
-    }
-  }
-  return undefined;
-}
-
 
 const generateRandomString = () => {
   let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
@@ -53,7 +42,7 @@ const generateRandomString = () => {
   for (let i = 0; i < stringLength; i++) {
     let number = Math.floor(Math.random() * chars.length);
     string += chars.substring(number, number + 1);
-  }f
+  }
   return string;
 };
 
@@ -63,13 +52,25 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let loggedInUser = req.cookies.user_id;
+  if (!loggedInUser) {
+    return res.status(403).send('Please Log in first')
+  }
+  // if user is logged in, retreive their ID
+  // user their ID to find the keys(shortURLs) they've entered
+  let filteredData = {};
+  
+  for (const urls in urlDatabase) {
+    if (urlDatabase[urls].userID === loggedInUser) {
+      filteredData[urls] = urlDatabase[urls]
+    }
+  }
+
   const templateVars = {
-    urls: urlDatabase,
+    urls: filteredData,
     userID: loggedInUser,
     user: users[loggedInUser]
   };
-  let id = findKeyByValue(urlDatabase, 'Gon')
-  console.log(urlDatabase[id])
+
   return res.render("urls_index", templateVars);
 });
 
@@ -135,7 +136,10 @@ app.post("/urls", (req, res) => {
   // if user true then
   if (req.cookies.user_id) {
   const id = generateRandomString()
-  urlDatabase[id].longURL = req.body.longURL;
+  urlDatabase[id] = {
+    longURL: req.body.longURL,
+    userID: req.cookies.user_id, 
+  };
   return res.redirect(`/urls/${id}`);
   }
   return res.status(401).send('Not authorized to do this action')
