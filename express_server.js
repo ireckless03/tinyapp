@@ -26,6 +26,7 @@ const users = {
   },
 };
 
+//constants for testing
 const urlDatabase = {
   b2xVn2: {
     longURL: "http://www.lighthouselabs.ca",
@@ -54,10 +55,10 @@ app.get("/urls", (req, res) => {
     userID: loggedInUser,
     user: users[loggedInUser]
   };
-  console.log(templateVars);
   return res.render("urls_index", templateVars);
 });
 
+// renders login page
 app.get("/login", (req, res) => {
   let id = req.session.user_id;
   const templateVars = {
@@ -68,6 +69,7 @@ app.get("/login", (req, res) => {
   return res.render("url_login", templateVars);
 });
 
+// renders register page
 app.get("/register", (req, res) => {
   let loggedInUser = req.session.user_id;
   const templateVars = {
@@ -78,10 +80,12 @@ app.get("/register", (req, res) => {
   return res.render("url_register", templateVars);
 });
 
+// shows all urls
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// renders page to create new url
 app.get("/urls/new", (req, res) => {
   let loggedInUser = req.session.user_id;
   const templateVars = {
@@ -91,7 +95,8 @@ app.get("/urls/new", (req, res) => {
   };
   return res.render("urls_new", templateVars);
 });
-//
+
+// renders page of short urls if they exist and if user made it
 app.get("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   let loggedInUser = req.session.user_id;
@@ -126,8 +131,6 @@ app.get(`/u/:id`, (req, res) => {
 
 // generate short url and save short & long to database
 app.post("/urls", (req, res) => {
-  // if user true then
-  
   if (req.session.user_id) {
     const id = generateRandomString();
     urlDatabase[id] = {
@@ -145,8 +148,6 @@ app.post('/login', (req, res) => {
   let password = req.body.password;
   for (const user of Object.keys(users)) {
     if (email !== users[user].email.toLocaleLowerCase()) {
-      console.log('user hashedpassword',users[user].password);
-      console.log('entered pw',password);
     } else {
       if (!bcrypt.compareSync(password, users[user].password)) {
       } else {
