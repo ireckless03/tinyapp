@@ -14,44 +14,22 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>TinyApp</title>
+
+    <title>Login</title>
   </head>
+
   <body>
     <%- include('partials/_header') %>
+
     <main style="margin: 1em;">
-      <h3>My URLs</h3>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Short URL ID</th>
-            <th scope="col">Long URL</th>
-            <th scope="col">Edit URL</th>
-            <th scpoe="col">Delete </th>
-          </tr>
-        </thead>
-        <tbody> 
-          <% for (let id in urls) { %>
-            <tr>
-              <td> <a href='<%= urls[id]%>'> <%=id%></a></td>
-              <td><%= urls[id].longURL %></td>
-              <td>
-                <% if (!userID) { %>
-                  <button type="button" 
-                  onclick="alert('Must be logged in to edit');">Edit</button>
-              </td><td>
-                <button type="button" 
-                  onclick="alert('Must be logged in to delete');">Delete</button>
-                <% } else {%>
-                <form method="POST" action="/urls/<%=id%>/edit"><button type="submit">Edit</button></form>
-              </td><td>
-                <form method="POST" action="/urls/<%=id%>/delete"><button type="submit">Delete</button></form>
-                <% } %>
-              </td>
-            </tr>
-            
-          <% } %>
-        </tbody>
-      </table>
+      <h3>Login</h3>
+      <form method="POST" action="/login">
+        <p>email: <input type="email" name="email"/></p>
+        <p>password: <input type="password" name="password"/></p>
+        <button>Login!</button>
+      </form>
+        </div>
+      </form>
     </main>
     <!-- Bootstrap JS -->
     <script

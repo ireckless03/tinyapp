@@ -1,14 +1,13 @@
 const express = require("express");
-const { restart } = require("nodemon");
 const bcrypt = require('bcryptjs');
-const {generateRandomString, isUserOwner, getUserByEmail, urlsForUser} = require('./helpers')
+const {generateRandomString, isUserOwner, urlsForUser} = require('./helpers');
 const app = express();
 const PORT = 8080;
-var cookieSession = require('cookie-session')
+let cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
   keys: ['red rabbits juggling orange juice'],
-}))
+}));
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
@@ -30,11 +29,11 @@ const users = {
 const urlDatabase = {
   b2xVn2: {
     longURL: "http://www.lighthouselabs.ca",
-    userID: "Kilua", 
+    userID: "Kilua",
   },
   s4m5xK: {
     longURL: "http://www.google.com",
-    userID: "Gon", 
+    userID: "Gon",
   },
 };
 
@@ -47,7 +46,7 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   let loggedInUser = req.session.user_id;
   if (!loggedInUser) {
-    return res.status(403).send('Please Log in first')
+    return res.status(403).send('Please Log in first');
   }
 
   const templateVars = {
@@ -55,7 +54,7 @@ app.get("/urls", (req, res) => {
     userID: loggedInUser,
     user: users[loggedInUser]
   };
-  console.log(templateVars)
+  console.log(templateVars);
   return res.render("urls_index", templateVars);
 });
 
@@ -95,17 +94,17 @@ app.get("/urls/new", (req, res) => {
 //
 app.get("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
-  let loggedInUser = req.session.user_id
+  let loggedInUser = req.session.user_id;
   if (!urlDatabase[shortURL]) {
     return res.status(404).send('Page not found');
   }
 
-  if (!loggedInUser ) {
-    return res.status(403).send('Not authorized to view, please log in')
+  if (!loggedInUser) {
+    return res.status(403).send('Not authorized to view, please log in');
   }
 
-  if(urlDatabase[shortURL].userID !== loggedInUser) {
-    return res.status(403).send('This is a Private Link')
+  if (urlDatabase[shortURL].userID !== loggedInUser) {
+    return res.status(403).send('This is a Private Link');
   }
 
   const templateVars = {
@@ -130,14 +129,14 @@ app.post("/urls", (req, res) => {
   // if user true then
   
   if (req.session.user_id) {
-  const id = generateRandomString()
-  urlDatabase[id] = {
-    longURL: req.body.longURL,
-    userID: req.session.user_id, 
-  };
-  return res.redirect(`/urls/${id}`);
+    const id = generateRandomString();
+    urlDatabase[id] = {
+      longURL: req.body.longURL,
+      userID: req.session.user_id,
+    };
+    return res.redirect(`/urls/${id}`);
   }
-  return res.status(401).send('Not authorized to do this action')
+  return res.status(401).send('Not authorized to do this action');
 });
 
 //checks for correct login credentials and redirects to homepage
@@ -146,8 +145,8 @@ app.post('/login', (req, res) => {
   let password = req.body.password;
   for (const user of Object.keys(users)) {
     if (email !== users[user].email.toLocaleLowerCase()) {
-      console.log('user hashedpassword',users[user].password)
-      console.log('entered pw',password)
+      console.log('user hashedpassword',users[user].password);
+      console.log('entered pw',password);
     } else {
       if (!bcrypt.compareSync(password, users[user].password)) {
       } else {
@@ -169,35 +168,35 @@ app.post('/logout', (req, res) => {
 // Delete a URL, redirect to main url page
 app.post('/urls/:id/delete', (req, res) => {
   const shortURL = req.params.id;
-  const loggedInUser = req.session.user_id
-  if (isUserOwner(shortURL, loggedInUser, urlDatabase)){
-  delete urlDatabase[shortURL];
-  return res.redirect('/urls')
+  const loggedInUser = req.session.user_id;
+  if (isUserOwner(shortURL, loggedInUser, urlDatabase)) {
+    delete urlDatabase[shortURL];
+    return res.redirect('/urls');
   }
-  return res.status(401).send("Only owner can delete")
+  return res.status(401).send("Only owner can delete");
 });
 
 // to edit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
-  const loggedInUser = req.session.user_id
+  const loggedInUser = req.session.user_id;
   const shortURL = req.params.id;
   if (!isUserOwner(shortURL, loggedInUser, urlDatabase)) {
-  return res.status(401).send('Only the owner can edit this URL')
-}
-return res.redirect(`/urls/${shortURL}/`)
+    return res.status(401).send('Only the owner can edit this URL');
+  }
+  return res.redirect(`/urls/${shortURL}/`);
 });
 
 // takes in submission for url change and changes urlDatabase
 app.post('/urls/:id/update', (req, res) => {
   const shortURL = req.params.id;
-  const loggedInUser = req.session.user_id
+  const loggedInUser = req.session.user_id;
   if (isUserOwner(shortURL, loggedInUser, urlDatabase)) {
-  urlDatabase[shortURL] = {
-    longURL: req.body.longURL, 
-    userID: loggedInUser};
-  return res.redirect(`/urls`);
-}
-return res.status(401).send('Only the owner can update this')
+    urlDatabase[shortURL] = {
+      longURL: req.body.longURL,
+      userID: loggedInUser};
+    return res.redirect(`/urls`);
+  }
+  return res.status(401).send('Only the owner can update this');
 });
 
 // checks for existing user before allowing registration
@@ -211,7 +210,7 @@ app.post('/register', (req, res) => {
       return res.status(400).send("User already exists!");
     }
   }
-  const userID = generateRandomString()
+  const userID = generateRandomString();
   const newUser = {
     user_id: userID,
     email: req.body.email,
@@ -226,4 +225,4 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-module.exports = {urlDatabase, users}
+module.exports = {urlDatabase, users};
