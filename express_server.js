@@ -12,7 +12,6 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 
-// constants for testing
 const users = {
   Kilua: {
     id: 'Kilua',
@@ -26,7 +25,6 @@ const users = {
   },
 };
 
-//constants for testing
 const urlDatabase = {
   b2xVn2: {
     longURL: "http://www.lighthouselabs.ca",
@@ -43,7 +41,7 @@ app.get("/", (req, res) => {
   return res.redirect('/urls');
 });
 
-// only allows users to see their own urls
+
 app.get("/urls", (req, res) => {
   let loggedInUser = req.session.user_id;
   if (!loggedInUser) {
@@ -58,7 +56,6 @@ app.get("/urls", (req, res) => {
   return res.render("urls_index", templateVars);
 });
 
-// renders login page
 app.get("/login", (req, res) => {
   let id = req.session.user_id;
   const templateVars = {
@@ -69,7 +66,6 @@ app.get("/login", (req, res) => {
   return res.render("url_login", templateVars);
 });
 
-// renders register page
 app.get("/register", (req, res) => {
   let loggedInUser = req.session.user_id;
   const templateVars = {
@@ -80,12 +76,10 @@ app.get("/register", (req, res) => {
   return res.render("url_register", templateVars);
 });
 
-// shows all urls
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-// renders page to create new url
 app.get("/urls/new", (req, res) => {
   let loggedInUser = req.session.user_id;
   const templateVars = {
@@ -96,7 +90,6 @@ app.get("/urls/new", (req, res) => {
   return res.render("urls_new", templateVars);
 });
 
-// renders page of short urls if they exist and if user made it
 app.get("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   let loggedInUser = req.session.user_id;
@@ -122,14 +115,12 @@ app.get("/urls/:id", (req, res) => {
   return res.render('urls_show',templateVars);
 });
 
-// if short url entered in path, redirect to long url
 app.get(`/u/:id`, (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id].longURL;
   return res.redirect(longURL);
 });
 
-// generate short url and save short & long to database
 app.post("/urls", (req, res) => {
   if (req.session.user_id) {
     const id = generateRandomString();
@@ -142,7 +133,6 @@ app.post("/urls", (req, res) => {
   return res.status(401).send('Not authorized to do this action');
 });
 
-//checks for correct login credentials and redirects to homepage
 app.post('/login', (req, res) => {
   let email = req.body.email.toLocaleLowerCase();
   let password = req.body.password;
@@ -160,13 +150,11 @@ app.post('/login', (req, res) => {
   return res.status(400).send("User Not Found!");
 });
 
-//logs user out and clears cookies
 app.post('/logout', (req, res) => {
   res.clearCookie('session');
   return res.redirect(`/login`);
 });
 
-// Delete a URL, redirect to main url page
 app.post('/urls/:id/delete', (req, res) => {
   const shortURL = req.params.id;
   const loggedInUser = req.session.user_id;
@@ -177,7 +165,6 @@ app.post('/urls/:id/delete', (req, res) => {
   return res.status(401).send("Only owner can delete");
 });
 
-// to edit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
   const loggedInUser = req.session.user_id;
   const shortURL = req.params.id;
@@ -187,7 +174,6 @@ app.post('/urls/:id/edit', (req, res) => {
   return res.redirect(`/urls/${shortURL}/`);
 });
 
-// takes in submission for url change and changes urlDatabase
 app.post('/urls/:id/update', (req, res) => {
   const shortURL = req.params.id;
   const loggedInUser = req.session.user_id;
@@ -200,7 +186,6 @@ app.post('/urls/:id/update', (req, res) => {
   return res.status(401).send('Only the owner can update this');
 });
 
-// checks for existing user before allowing registration
 app.post('/register', (req, res) => {
   if (req.body.email === '' || req.body.password === '') {
     return res.status(400).send("Email and password are required!");
