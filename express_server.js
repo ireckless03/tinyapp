@@ -1,18 +1,19 @@
 const express = require("express");
 const { restart } = require("nodemon");
 const bcrypt = require('bcryptjs');
+const {generateRandomString, isUserOwner, getUserByEmail, urlsForUser} = require('./helpers')
 const app = express();
 const PORT = 8080;
-
-
+var cookieSession = require('cookie-session')
+app.use(cookieSession({
+  name: 'session',
+  keys: ['red rabbits juggling orange juice'],
+}))
 app.set("view engine", "ejs");
-
-let cookies = require("cookie-parser");
-
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cookies());
 
+// constants for testing
 const users = {
   Kilua: {
     id: 'Kilua',
@@ -37,34 +38,6 @@ const urlDatabase = {
   },
 };
 
-const generateRandomString = () => {
-  let chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-  let stringLength = 6;
-  let string = '';
-  for (let i = 0; i < stringLength; i++) {
-    let number = Math.floor(Math.random() * chars.length);
-    string += chars.substring(number, number + 1);
-  }
-  return string;
-};
-
-const isUserOwner = (shortURL, user) => {
-  if (urlDatabase[shortURL].userID === user){
-    return true
-  }
-    return false
-  }
-
-
-const urlsForUser = (user) => {
-  let filteredData = {}
-  for (const urls in urlDatabase) {
-    if (urlDatabase[urls].userID === user) {
-      filteredData[urls] = urlDatabase[urls]
-    }
-  }
- return filteredData
-}
 
 app.get("/", (req, res) => {
   return res.redirect('/urls');
@@ -72,21 +45,22 @@ app.get("/", (req, res) => {
 
 // only allows users to see their own urls
 app.get("/urls", (req, res) => {
-  let loggedInUser = req.cookies.user_id;
+  let loggedInUser = req.session.user_id;
   if (!loggedInUser) {
     return res.status(403).send('Please Log in first')
   }
 
   const templateVars = {
-    urls: urlsForUser(loggedInUser),
+    urls: urlsForUser(loggedInUser, urlDatabase),
     userID: loggedInUser,
     user: users[loggedInUser]
   };
+  console.log(templateVars)
   return res.render("urls_index", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  let id = req.cookies.user_id;
+  let id = req.session.user_id;
   const templateVars = {
     urls: urlDatabase,
     userID: id,
@@ -96,7 +70,7 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  let loggedInUser = req.cookies.user_id;
+  let loggedInUser = req.session.user_id;
   const templateVars = {
     urls: urlDatabase,
     userID: loggedInUser,
@@ -110,7 +84,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  let loggedInUser = req.cookies.user_id;
+  let loggedInUser = req.session.user_id;
   const templateVars = {
     urls: urlDatabase,
     userID: loggedInUser,
@@ -121,7 +95,7 @@ app.get("/urls/new", (req, res) => {
 //
 app.get("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
-  let loggedInUser = req.cookies.user_id
+  let loggedInUser = req.session.user_id
   if (!urlDatabase[shortURL]) {
     return res.status(404).send('Page not found');
   }
@@ -155,11 +129,11 @@ app.get(`/u/:id`, (req, res) => {
 app.post("/urls", (req, res) => {
   // if user true then
   
-  if (req.cookies.user_id) {
+  if (req.session.user_id) {
   const id = generateRandomString()
   urlDatabase[id] = {
     longURL: req.body.longURL,
-    userID: req.cookies.user_id, 
+    userID: req.session.user_id, 
   };
   return res.redirect(`/urls/${id}`);
   }
@@ -177,7 +151,7 @@ app.post('/login', (req, res) => {
     } else {
       if (!bcrypt.compareSync(password, users[user].password)) {
       } else {
-        res.cookie('user_id', user);
+        req.session.user_id = user;
         return res.redirect('/urls');
       }
       return res.status(400).send("Wrong Password!");
@@ -188,15 +162,15 @@ app.post('/login', (req, res) => {
 
 //logs user out and clears cookies
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  res.clearCookie('session');
   return res.redirect(`/login`);
 });
 
 // Delete a URL, redirect to main url page
 app.post('/urls/:id/delete', (req, res) => {
   const shortURL = req.params.id;
-  const loggedInUser = req.cookies.user_id
-  if (isUserOwner(shortURL, loggedInUser)){
+  const loggedInUser = req.session.user_id
+  if (isUserOwner(shortURL, loggedInUser, urlDatabase)){
   delete urlDatabase[shortURL];
   return res.redirect('/urls')
   }
@@ -205,9 +179,9 @@ app.post('/urls/:id/delete', (req, res) => {
 
 // to edit long url, redirects to urlshort page
 app.post('/urls/:id/edit', (req, res) => {
-  const loggedInUser = req.cookies.user_id
+  const loggedInUser = req.session.user_id
   const shortURL = req.params.id;
-  if (!isUserOwner(shortURL, loggedInUser)) {
+  if (!isUserOwner(shortURL, loggedInUser, urlDatabase)) {
   return res.status(401).send('Only the owner can edit this URL')
 }
 return res.redirect(`/urls/${shortURL}/`)
@@ -216,8 +190,8 @@ return res.redirect(`/urls/${shortURL}/`)
 // takes in submission for url change and changes urlDatabase
 app.post('/urls/:id/update', (req, res) => {
   const shortURL = req.params.id;
-  const loggedInUser = req.cookies.user_id
-  if (isUserOwner(shortURL, loggedInUser)) {
+  const loggedInUser = req.session.user_id
+  if (isUserOwner(shortURL, loggedInUser, urlDatabase)) {
   urlDatabase[shortURL] = {
     longURL: req.body.longURL, 
     userID: loggedInUser};
@@ -237,17 +211,14 @@ app.post('/register', (req, res) => {
       return res.status(400).send("User already exists!");
     }
   }
-  
+  const userID = generateRandomString()
   const newUser = {
-    user_id: generateRandomString(),
+    user_id: userID,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 10)
   };
-  console.log(newUser)
-  console.log('newly created',req.body.password)
-  console.log('new hashed pw',newUser.password)
   users[newUser.user_id] = newUser;
-  res.cookie('user_id', newUser.user_id);
+  req.session.user_id = userID;
   return res.redirect(`/urls`);
 });
 
@@ -255,4 +226,4 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-
+module.exports = {urlDatabase, users}
