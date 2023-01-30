@@ -47,7 +47,7 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   let loggedInUser = req.session.user_id;
   if (!loggedInUser) {
-    return res.status(403).send('Please Log in first');
+    return res.redirect('/login');
   }
 
   const templateVars = {
@@ -174,7 +174,7 @@ app.post('/urls/:id/delete', (req, res) => {
     delete urlDatabase[shortURL];
     return res.redirect('/urls');
   }
-  return res.status(401).send("Only owner can delete");
+  return res.status(401).send("Only owner of this URL is able to delete it");
 });
 
 // to edit long url, redirects to urlshort page
