@@ -15,33 +15,33 @@ const generateRandomString = () => {
 
 // checks if logged in user owns url
 const isUserOwner = (shortURL, user, urlDatabase) => {
-  if (urlDatabase[shortURL].userID === user){
-    return true
+  if (urlDatabase[shortURL].userID === user) {
+    return true;
   }
-    return false
-  }
+  return false;
+};
 
 // gets user by email
 const getUserByEmail = (email, users) => {
-  console.log('userss',users)
+  console.log('userss',users);
   for (const user in users) {
-    console.log('user',user)
-    console.log('email', users[user].email)
+    console.log('user',user);
+    console.log('email', users[user].email);
     if (users[user].email === email) {
       return user;
     }
   }
-}
+};
 
 // shows user only urls they've made
 const urlsForUser = (userID, urlDatabase) => {
-  let filteredData = {}
+  let filteredData = {};
   for (const urls in urlDatabase) {
     if (urlDatabase[urls].userID === userID) {
-      filteredData[urls] = urlDatabase[urls]
+      filteredData[urls] = urlDatabase[urls];
     }
   }
- return filteredData
-}
+  return filteredData;
+};
 
-module.exports = {generateRandomString, isUserOwner, getUserByEmail, urlsForUser}
+module.exports = {generateRandomString, isUserOwner, getUserByEmail, urlsForUser};
